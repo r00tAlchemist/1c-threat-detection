@@ -1,0 +1,7 @@
+<!-- Добавить в конец C:\Program Files (x86)\ossec-agent\ossec.conf и перезапустить агент -->
+<ossec_config>
+  <localfile>
+    <location>C:\ProgramData\1c-eventlog\events.json</location>
+    <log_format>json</log_format>
+  </localfile>
+</ossec_config>

@@ -1,0 +1,26 @@
+title: 1С - создан пользователь информационной базы
+id: 82b74dd5-8ea9-494c-af65-aa42523f65a1
+status: experimental
+description: В информационную базу 1С:Предприятие добавлен новый пользователь. Получив права администратора, атакующий заводит учётку, чтобы закрепиться.
+references:
+    - https://github.com/r00tAlchemist/1c-threat-detection
+author: r00tAlchemist
+license: MIT
+date: 2026-10-26
+tags:
+    - attack.persistence
+    - attack.t1136.001
+logsource:
+    product: 1c
+    service: eventlog
+detection:
+    selection:
+        ev.id: '_$User$_.New'
+    condition: selection
+fields:
+    - user.name
+    - ev.data
+    - computer
+falsepositives:
+    - Плановое заведение сотрудников администратором 1С
+level: high

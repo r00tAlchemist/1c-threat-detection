@@ -1,0 +1,51 @@
+<group name="1c,">
+  <rule id="100100" level="0">
+    <decoded_as>json</decoded_as>
+    <field name="integration">1c</field>
+    <description>1С: событие журнала регистрации</description>
+  </rule>
+
+  <rule id="100101" level="5">
+    <if_sid>100100</if_sid>
+    <field name="ev.id" type="pcre2">^_\$Session\$_\.AuthenticationError$</field>
+    <description>1С: неудачный вход</description>
+    <mitre><id>T1110</id></mitre>
+    <group>authentication_failed,</group>
+  </rule>
+
+  <rule id="100102" level="10" frequency="5" timeframe="60">
+    <if_matched_sid>100101</if_matched_sid>
+    <description>1С: подбор пароля - 5 неудачных входов за 60 с</description>
+    <mitre><id>T1110.001</id></mitre>
+  </rule>
+
+  <rule id="100103" level="10">
+    <if_sid>100100</if_sid>
+    <field name="ev.id" type="pcre2">^_\$User\$_\.New$</field>
+    <description>1С: создан пользователь информационной базы</description>
+    <mitre><id>T1136.001</id></mitre>
+    <group>adduser,</group>
+  </rule>
+
+  <rule id="100104" level="7">
+    <if_sid>100100</if_sid>
+    <field name="ev.id" type="pcre2">^_\$InfoBase\$_\.ConfigUpdate$</field>
+    <description>1С: изменена конфигурация информационной базы</description>
+    <mitre><id>T1505</id></mitre>
+  </rule>
+
+  <rule id="100105" level="3">
+    <if_sid>100100</if_sid>
+    <field name="ev.id" type="pcre2">^_\$Session\$_\.Authentication$</field>
+    <description>1С: успешный вход</description>
+    <group>authentication_success,</group>
+  </rule>
+
+  <rule id="100106" level="12" timeframe="120">
+    <if_matched_sid>100102</if_matched_sid>
+    <if_sid>100105</if_sid>
+    <description>1С: успешный вход после подбора пароля</description>
+    <mitre><id>T1110</id></mitre>
+    <group>authentication_success,</group>
+  </rule>
+</group>

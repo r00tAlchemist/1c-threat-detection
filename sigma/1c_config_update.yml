@@ -1,0 +1,26 @@
+title: 1С - изменена конфигурация информационной базы
+id: f08d16ba-0906-404d-bf49-1b084e66d316
+status: experimental
+description: Изменена конфигурация информационной базы (прикладной код). Так можно внедрить вредоносный модуль.
+references:
+    - https://github.com/r00tAlchemist/1c-threat-detection
+author: r00tAlchemist
+license: MIT
+date: 2026-10-26
+tags:
+    - attack.persistence
+    - attack.t1505
+logsource:
+    product: 1c
+    service: eventlog
+detection:
+    selection:
+        ev.id: '_$InfoBase$_.ConfigUpdate'
+    condition: selection
+fields:
+    - user.name
+    - computer
+    - comment
+falsepositives:
+    - Плановое обновление конфигурации разработчиками
+level: medium

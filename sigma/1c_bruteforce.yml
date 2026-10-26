@@ -1,0 +1,50 @@
+title: 1С - неудачный вход
+id: d2158ec0-ca04-450b-b1eb-0fa3e794fa3f
+name: onec_auth_failure
+status: experimental
+description: Неудачная попытка входа в информационную базу 1С:Предприятие.
+references:
+    - https://github.com/r00tAlchemist/1c-threat-detection
+author: r00tAlchemist
+license: MIT
+date: 2026-10-26
+tags:
+    - attack.credential-access
+    - attack.t1110
+logsource:
+    product: 1c
+    service: eventlog
+detection:
+    selection:
+        ev.id: '_$Session$_.AuthenticationError'
+    condition: selection
+fields:
+    - user.name
+    - computer
+    - app
+falsepositives:
+    - Пользователь ошибся в пароле
+level: low
+---
+title: 1С - подбор пароля
+id: c4e61ecb-7d1a-4fc6-8d4a-2044406c144a
+status: experimental
+description: Пять и более неудачных входов в одну информационную базу 1С за 60 секунд.
+author: r00tAlchemist
+license: MIT
+date: 2026-10-26
+tags:
+    - attack.credential-access
+    - attack.t1110.001
+correlation:
+    type: event_count
+    rules:
+        - onec_auth_failure
+    group-by:
+        - ib
+    timespan: 60s
+    condition:
+        gte: 5
+falsepositives:
+    - Интеграция или обмен повторяет вход со старым паролем
+level: high

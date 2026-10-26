@@ -1,0 +1,20 @@
+# Вход Filebeat 8.x для events.json сборщика 1С. В лабе не проверялся.
+filebeat.inputs:
+  - type: filestream
+    id: onec-eventlog
+    paths:
+      - 'C:\ProgramData\1c-eventlog\events.json'
+    parsers:
+      - ndjson:
+          target: ""
+          add_error_key: true
+    processors:
+      # 1С пишет локальное время без часового пояса
+      - timestamp:
+          field: ts
+          layouts:
+            - '2006-01-02T15:04:05'
+          timezone: Local
+    fields:
+      event.dataset: onec.eventlog
+    fields_under_root: true

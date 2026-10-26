@@ -1,0 +1,82 @@
+# Цепочка «подбор пароля → успешный вход». Нужна поддержка корреляций temporal_ordered
+# и ссылок корреляции на корреляцию в бэкенде. pySigma-бэкенды Splunk и Elastic (ES|QL)
+# на 2026-10 этого не умеют, поэтому файл вынесен из sigma/ и самодостаточен.
+# В Wazuh то же самое делает нативное правило 100106.
+title: 1С - неудачный вход (для корреляции)
+id: e900fa11-7754-4d8d-9bf4-e94bc1e9395f
+name: onec_chain_auth_failure
+status: experimental
+description: Неудачная попытка входа в информационную базу 1С:Предприятие.
+author: r00tAlchemist
+license: MIT
+date: 2026-10-26
+logsource:
+    product: 1c
+    service: eventlog
+detection:
+    selection:
+        ev.id: '_$Session$_.AuthenticationError'
+    condition: selection
+level: low
+---
+title: 1С - подбор пароля (для корреляции)
+id: 3d3ff8c8-9dd7-404e-94d9-8d0d5e255e97
+name: onec_chain_bruteforce
+status: experimental
+description: Пять и более неудачных входов в одну информационную базу 1С за 60 секунд.
+author: r00tAlchemist
+license: MIT
+date: 2026-10-26
+correlation:
+    type: event_count
+    rules:
+        - onec_chain_auth_failure
+    group-by:
+        - ib
+    timespan: 60s
+    condition:
+        gte: 5
+level: high
+---
+title: 1С - успешный вход
+id: 44ee3373-083d-48ff-8e61-f290b377894a
+name: onec_chain_auth_success
+status: experimental
+description: Успешный вход в информационную базу 1С:Предприятие. Само по себе не алерт.
+author: r00tAlchemist
+license: MIT
+date: 2026-10-26
+logsource:
+    product: 1c
+    service: eventlog
+detection:
+    selection:
+        ev.id: '_$Session$_.Authentication'
+    condition: selection
+level: informational
+---
+title: 1С - успешный вход после подбора пароля
+id: 81041c7a-9081-464a-8405-6331eab71a72
+status: experimental
+description: Успешный вход в информационную базу 1С в течение 2 минут после подбора пароля. Вероятно, пароль подобран.
+references:
+    - https://github.com/r00tAlchemist/1c-threat-detection
+author: r00tAlchemist
+license: MIT
+date: 2026-10-26
+tags:
+    - attack.credential-access
+    - attack.initial-access
+    - attack.t1110
+    - attack.t1078
+correlation:
+    type: temporal_ordered
+    rules:
+        - onec_chain_bruteforce
+        - onec_chain_auth_success
+    group-by:
+        - ib
+    timespan: 120s
+falsepositives:
+    - Пользователь несколько раз ошибся в пароле и затем вошёл
+level: critical
