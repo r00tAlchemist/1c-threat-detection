@@ -1,0 +1,38 @@
+title: 1С - команда из обработки с выводом в файл
+id: d6efeee6-7fe0-447c-be18-53fda2f204ba
+status: experimental
+description: Процесс 1С запустил cmd с перенаправлением вывода в файл. Так внешняя обработка выполняет команду и читает результат обратно в 1С, это типичная «консоль» в обработке. При сборе 4688 через Wazuh символ > в командной строке приходит как &gt;, поэтому проверяются оба варианта.
+references:
+    - https://github.com/r00tAlchemist/1c-threat-detection
+author: r00tAlchemist
+license: MIT
+date: 2026-10-27
+tags:
+    - attack.execution
+    - attack.t1059.003
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_parent:
+        ParentImage|endswith:
+            - '\1cv8.exe'
+            - '\1cv8c.exe'
+            - '\1cv8t.exe'
+            - '\1cv8ct.exe'
+            - '\rphost.exe'
+            - '\w3wp.exe'
+    selection_child:
+        Image|endswith: '\cmd.exe'
+    selection_redirect:
+        CommandLine|contains:
+            - '>'
+            - '&gt;'
+    condition: all of selection_*
+fields:
+    - User
+    - ParentImage
+    - CommandLine
+falsepositives:
+    - Обработки, которые штатно вызывают внешние программы и забирают их вывод через файл. Добавьте их командные строки в исключения.
+level: critical

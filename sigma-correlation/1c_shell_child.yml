@@ -1,0 +1,76 @@
+# Цепочка «1С запустила оболочку → в оболочке выполнена команда». Связь строится по LogonId:
+# сравнить PID родителя и потомка из разных событий нельзя ни в Sigma, ни в Wazuh.
+# В Wazuh то же самое делает нативное правило 100109.
+title: 1С - процесс 1С запустил оболочку (для корреляции)
+id: d88dcb2e-926a-4828-ba79-30d8ea362965
+name: onec_chain_shell_spawn
+status: experimental
+description: Клиент или рабочий процесс сервера 1С запустил cmd или PowerShell.
+author: r00tAlchemist
+license: MIT
+date: 2026-10-27
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_parent:
+        ParentImage|endswith:
+            - '\1cv8.exe'
+            - '\1cv8c.exe'
+            - '\1cv8t.exe'
+            - '\1cv8ct.exe'
+            - '\rphost.exe'
+            - '\w3wp.exe'
+    selection_child:
+        Image|endswith:
+            - '\cmd.exe'
+            - '\powershell.exe'
+            - '\pwsh.exe'
+    condition: all of selection_*
+level: high
+---
+title: Процесс запущен оболочкой (для корреляции)
+id: 4472f46c-4707-40c8-ba78-37eb6e10a5bb
+name: onec_chain_shell_child
+status: experimental
+description: Процесс, запущенный cmd или PowerShell. Само по себе не алерт.
+author: r00tAlchemist
+license: MIT
+date: 2026-10-27
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        ParentImage|endswith:
+            - '\cmd.exe'
+            - '\powershell.exe'
+            - '\pwsh.exe'
+    filter_conhost:
+        Image|endswith: '\conhost.exe'
+    condition: selection and not filter_conhost
+level: informational
+---
+title: 1С - команда в оболочке, запущенной из 1С
+id: 7b53fcd6-4c68-4c11-be75-537d292d1a52
+status: experimental
+description: В течение 10 минут после того, как процесс 1С запустил оболочку, в том же сеансе входа оболочка запустила другой процесс (whoami, ipconfig, net и т. п.). Связывает команды внутри консоли из внешней обработки с 1С.
+references:
+    - https://github.com/r00tAlchemist/1c-threat-detection
+author: r00tAlchemist
+license: MIT
+date: 2026-10-27
+tags:
+    - attack.execution
+    - attack.t1059
+correlation:
+    type: temporal_ordered
+    rules:
+        - onec_chain_shell_spawn
+        - onec_chain_shell_child
+    group-by:
+        - LogonId
+    timespan: 10m
+falsepositives:
+    - Пользователь в том же сеансе входа сам работал в командной строке
+level: high

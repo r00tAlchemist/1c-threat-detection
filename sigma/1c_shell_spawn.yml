@@ -1,0 +1,51 @@
+title: 1С - процесс 1С запустил командный интерпретатор
+id: 2b7e3afa-5732-453e-bed3-01a0a6fceacc
+status: experimental
+description: Клиент или рабочий процесс сервера 1С запустил командный интерпретатор или системную утилиту. Так выполняется код из внешней обработки или отчёта (ЗапуститьПриложение, COMОбъект("WScript.Shell")). Журнал регистрации открытие внешней обработки не фиксирует, поэтому детект строится на событиях создания процессов. При работе через веб-клиент серверный код выполняется в пуле приложений IIS, поэтому родителем будет w3wp.exe.
+references:
+    - https://github.com/r00tAlchemist/1c-threat-detection
+author: r00tAlchemist
+license: MIT
+date: 2026-10-27
+tags:
+    - attack.execution
+    - attack.t1059
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_parent:
+        ParentImage|endswith:
+            - '\1cv8.exe'
+            - '\1cv8c.exe'
+            - '\1cv8t.exe'
+            - '\1cv8ct.exe'
+            - '\rphost.exe'
+            - '\w3wp.exe'
+    selection_child:
+        Image|endswith:
+            - '\cmd.exe'
+            - '\powershell.exe'
+            - '\pwsh.exe'
+            - '\wscript.exe'
+            - '\cscript.exe'
+            - '\mshta.exe'
+            - '\rundll32.exe'
+            - '\regsvr32.exe'
+            - '\certutil.exe'
+            - '\bitsadmin.exe'
+            - '\wmic.exe'
+            - '\schtasks.exe'
+            - '\whoami.exe'
+            - '\net.exe'
+            - '\net1.exe'
+    condition: all of selection_*
+fields:
+    - User
+    - ParentImage
+    - Image
+    - CommandLine
+falsepositives:
+    - Обработки и регламентные задания, которые штатно вызывают внешние программы (выгрузка через архиватор, печать через скрипт). Добавьте их командные строки в исключения.
+    - w3wp.exe обслуживает не только 1С. Если на сервере IIS есть другие приложения, которые штатно запускают cmd, исключите их пулы.
+level: high
