@@ -23,9 +23,17 @@
   <rule id="100103" level="10">
     <if_sid>100100</if_sid>
     <field name="ev.id" type="pcre2">^_\$User\$_\.New$</field>
-    <description>1С: создан пользователь информационной базы</description>
+    <description>1С: создан пользователь информационной базы $(ev.data)</description>
     <mitre><id>T1136</id></mitre>
     <group>adduser,</group>
+  </rule>
+
+  <rule id="100110" level="8">
+    <if_sid>100100</if_sid>
+    <field name="ev.id" type="pcre2">^_\$User\$_\.Delete$</field>
+    <description>1С: удалён пользователь информационной базы $(ev.data)</description>
+    <mitre><id>T1531</id></mitre>
+    <group>userdel,</group>
   </rule>
 
   <rule id="100104" level="7">

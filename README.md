@@ -32,7 +32,8 @@
 |---|---|---|---|
 | `1c_bruteforce.yml` — неудачный вход | неудачный вход в базу | low | T1110 |
 | `1c_bruteforce.yml` — подбор пароля (корреляция) | ≥5 неудачных входов за 60 с | high | T1110.001 |
-| `1c_user_created.yml` | создан пользователь информационной базы | high | T1136 |
+| `1c_user_created.yml` | создан пользователь информационной базы (имя — в `ev.data`) | high | T1136 |
+| `1c_user_deleted.yml` | удалён пользователь информационной базы (имя — в `ev.data`) | medium | T1531 |
 | `1c_config_update.yml` | изменена конфигурация базы | medium | T1505 |
 | `1c_shell_spawn.yml` | процесс 1С запустил `cmd`, `powershell`, `mshta` и т. п. — выполнение кода из внешней обработки | high | T1059 |
 | `1c_shell_output_redirect.yml` | процесс 1С запустил `cmd` с выводом в файл (`whoami > %TEMP%\res.txt`) — обработка выполняет команду и читает результат | critical | T1059.003 |
@@ -154,7 +155,7 @@ powershell -ExecutionPolicy Bypass -File .\install\uninstall.ps1
 | `integration` | всегда `1c` — для фильтра на стороне SIEM |
 | `ev.id` | системный ID события 1С (`_$Session$_.Authentication`, `_$User$_.New`, …) — по нему пишутся правила |
 | `ev.level` | `information` / `warning` / `error` / `note` |
-| `ev.meta`, `ev.data` | объект метаданных и представление данных (если есть) |
+| `ev.meta`, `ev.data` | объект метаданных и представление данных. Если представления нет, в `ev.data` — первая строка из данных события: имя пользователя для `_$User$_.New`/`Delete`, учётка Windows для `_$Session$_.*` |
 | `user.name`, `computer`, `app`, `session` | кто, откуда, каким клиентом, номер сеанса |
 | `ts` | локальное время сервера 1С, без часового пояса |
 

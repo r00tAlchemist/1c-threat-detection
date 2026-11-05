@@ -175,6 +175,18 @@ class Dictionary:
 # 6 соединение  7 событие  8 важность  9 комментарий  10 метаданные  11 данные
 # 12 представление данных  13 сервер  14 порт  15 доп. порт  16 сеанс  ...
 
+def first_string(node) -> str:
+    """Первое строковое значение {"S","..."} в структуре данных записи."""
+    if isinstance(node, list):
+        if len(node) == 2 and node[0] == "S" and isinstance(node[1], str):
+            return node[1]
+        for x in node:
+            s = first_string(x)
+            if s:
+                return s
+    return ""
+
+
 def to_event(rec: list, d: Dictionary) -> dict:
     dt = rec[0]
     ev_idx = _int(rec[7])
@@ -187,6 +199,12 @@ def to_event(rec: list, d: Dictionary) -> dict:
         ev["meta"] = meta
     if len(rec) > 12 and isinstance(rec[12], str) and rec[12]:
         ev["data"] = rec[12]
+    elif len(rec) > 11:
+        # Представление пустое: берём первую строку из поля данных.
+        # Там имя пользователя для _$User$_.New/Delete и учётка Windows для _$Session$_.*
+        s = first_string(rec[11])
+        if s:
+            ev["data"] = s
     return {
         "integration": "1c",
         "ib":          INFOBASE,

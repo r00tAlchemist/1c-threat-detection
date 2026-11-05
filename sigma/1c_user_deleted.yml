@@ -1,0 +1,26 @@
+title: 1С - удалён пользователь информационной базы
+id: 5d3c8f2e-7a41-4b6e-9c0d-2e8f6a1b4c73
+status: experimental
+description: Из информационной базы 1С:Предприятие удалён пользователь. Так атакующий отбирает доступ у сотрудников или убирает учётку, которую завёл для закрепления. Имя удалённого пользователя - в ev.data.
+references:
+    - https://github.com/r00tAlchemist/1c-threat-detection
+author: r00tAlchemist
+license: MIT
+date: 2026-11-05
+tags:
+    - attack.impact
+    - attack.t1531
+logsource:
+    product: 1c
+    service: eventlog
+detection:
+    selection:
+        ev.id: '_$User$_.Delete'
+    condition: selection
+fields:
+    - user.name
+    - ev.data
+    - computer
+falsepositives:
+    - Плановое удаление уволенных сотрудников администратором 1С
+level: medium
