@@ -28,7 +28,11 @@ detection:
         CommandLine|contains:
             - '>'
             - '&gt;'
-    condition: all of selection_*
+    filter_main_nul:
+        # все перенаправления - только >nul или 2>&1, то есть вывод подавлен, а не записан в файл
+        # регулярка в синтаксисе PCRE: для Lucene и ES|QL фильтр придётся переписать
+        CommandLine|re: '(?i)^(?:[^>]|>\s*nul|>&)*$'
+    condition: all of selection_* and not filter_main_nul
 fields:
     - User
     - ParentImage

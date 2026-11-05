@@ -65,10 +65,11 @@
   </rule>
 
   <!-- Вывод команды перенаправлен в файл: обработка читает результат обратно в 1С.
-       В eventchannel символ > приходит как &gt;, поэтому ищем оба варианта -->
+       В eventchannel символ > приходит как &gt;, поэтому ищем оба варианта.
+       >nul и 2>&1 - не вывод в файл, их пропускаем -->
   <rule id="100108" level="14">
     <if_sid>100107</if_sid>
-    <field name="win.eventdata.commandLine" type="pcre2">(\x3e|\x26gt;)</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(\x3e|\x26gt;)(?!\s*(nul\b|\x26))</field>
     <description>1С: команда из обработки с выводом в файл - $(win.eventdata.commandLine)</description>
     <mitre><id>T1059.003</id></mitre>
   </rule>
