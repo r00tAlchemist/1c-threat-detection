@@ -32,7 +32,7 @@
 |---|---|---|---|
 | `1c_bruteforce.yml` — неудачный вход | неудачный вход в базу | low | T1110 |
 | `1c_bruteforce.yml` — подбор пароля (корреляция) | ≥5 неудачных входов за 60 с | high | T1110.001 |
-| `1c_user_created.yml` | создан пользователь информационной базы | high | T1136.001 |
+| `1c_user_created.yml` | создан пользователь информационной базы | high | T1136 |
 | `1c_config_update.yml` | изменена конфигурация базы | medium | T1505 |
 | `1c_shell_spawn.yml` | процесс 1С запустил `cmd`, `powershell`, `mshta` и т. п. — выполнение кода из внешней обработки | high | T1059 |
 | `1c_shell_output_redirect.yml` | процесс 1С запустил `cmd` с выводом в файл (`whoami > %TEMP%\res.txt`) — обработка выполняет команду и читает результат | critical | T1059.003 |
@@ -43,7 +43,7 @@
 
 Правило «вход после подбора пароля» лежит отдельно, в `sigma-correlation/`: это цепочка корреляций (`temporal_ordered`), а бэкенды Splunk и ES|QL её пока не конвертируют. Если ваш SIEM умеет такие корреляции, подключайте его. Если нет, переложите логику в нативное правило: в `rules/wazuh/` это правило 100106. То же для `1c_shell_child.yml`: в Wazuh это правило 100109.
 
-`1c_shell_spawn.yml` работает не по журналу 1С, а по событиям создания процессов Windows: открытие внешней обработки журнал регистрации не фиксирует, видно только то, что обработка запустила. При работе через веб-клиент серверный код выполняется в пуле приложений IIS, поэтому в списке родителей есть `w3wp.exe`. Нужен Sysmon (Event ID 1) или аудит создания процессов с командной строкой (Event ID 4688). Включить аудит на сервере 1С:
+`1c_shell_spawn.yml` работает не по журналу 1С, а по событиям создания процессов Windows: открытие внешней обработки журнал регистрации не фиксирует, видно только то, что обработка запустила. При работе через веб-клиент с файловой базой серверный код выполняется в пуле приложений IIS, поэтому в списке родителей есть `w3wp.exe`. Нужен Sysmon (Event ID 1) или аудит создания процессов с командной строкой (Event ID 4688). Включить аудит на сервере 1С:
 
 ```powershell
 auditpol /set /subcategory:"{0CCE922B-69AE-11D9-BED3-505054503030}" /success:enable
@@ -94,6 +94,7 @@ cd 1c-threat-detection
 ```powershell
 $LogDir   = "C:\Users\user\Documents\InfoBase\1Cv8Log"   # каталог 1Cv8Log из шага 2
 $InfoBase = "accounting"                                  # имя базы, попадёт в поле ib
+# Имя базы должно быть уникальным во всём SIEM: правила подбора пароля группируют события по полю ib
 
 powershell -ExecutionPolicy Bypass -File .\install\install.ps1 -LogDir $LogDir -InfoBase $InfoBase
 ```
@@ -145,7 +146,7 @@ powershell -ExecutionPolicy Bypass -File .\install\uninstall.ps1
 ## Формат события
 
 ```json
-{"integration":"1c","ib":"demo","ts":"2026-10-26T18:40:30","ev":{"id":"_$Session$_.AuthenticationError","level":"error"},"user":{"name":"Администратор"},"computer":"WS01","app":"1CV8","session":2,"comment":""}
+{"integration":"1c","ib":"demo","ts":"2026-10-27T15:57:55","ev":{"id":"_$Session$_.AuthenticationError","level":"information"},"user":{"name":""},"computer":"WS01","app":"1CV8","session":2,"comment":""}
 ```
 
 | Поле | |

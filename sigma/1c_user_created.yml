@@ -9,7 +9,7 @@ license: MIT
 date: 2026-10-26
 tags:
     - attack.persistence
-    - attack.t1136.001
+    - attack.t1136
 logsource:
     product: 1c
     service: eventlog
